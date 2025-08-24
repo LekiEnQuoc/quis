@@ -1,0 +1,43 @@
+-- AutoSpawn.lua (LocalScript)
+
+local player = game.Players.LocalPlayer
+
+-- Hàm gọi remote spawn
+local function DoSpawn()
+    if workspace:FindFirstChild("AA") and workspace.AA:FindFirstChild("ToPlayerCharacter") then
+        local remote = workspace.AA.ToPlayerCharacter:FindFirstChild("Spawned")
+        if remote then
+            print("Đang gọi spawn remote...")
+            if remote:IsA("RemoteEvent") then
+                remote:FireServer()
+            elseif remote:IsA("RemoteFunction") then
+                remote:InvokeServer()
+            end
+        else
+            warn("Không tìm thấy remote Spawned")
+        end
+    else
+        warn("Không tìm thấy workspace.AA.ToPlayerCharacter")
+    end
+end
+
+-- Khi nhân vật chết thì spawn lại
+local function Setup(char)
+    local humanoid = char:WaitForChild("Humanoid")
+    humanoid.Died:Connect(function()
+        print("Nhân vật chết, chuẩn bị spawn lại...")
+        task.wait(3)
+        DoSpawn()
+    end)
+end
+
+-- Gắn vào Character
+player.CharacterAdded:Connect(function(char)
+    print("Character mới được spawn")
+    Setup(char)
+end)
+
+-- Nếu có sẵn nhân vật thì setup luôn
+if player.Character then
+    Setup(player.Character)
+end
