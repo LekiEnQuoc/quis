@@ -12,7 +12,7 @@ local function Uongnuoc()
         "Banana Juice",
         "Apple Juice",
         "Pear Juice",
-        "Coconut Milk",
+        "Coconut Milk"
         
     }
 
