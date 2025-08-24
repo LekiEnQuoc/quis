@@ -39,7 +39,7 @@ local function TeleportAndClick(x, y, z, radius)
                     
                     local distance = (hrp.Position - parentPart.Position).Magnitude
                     if distance <= RADIUS then
-                        fireclickdetector(v)
+                        fireclickdetector(v, 1)
                     end
                 end
             end
