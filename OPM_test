@@ -1,12 +1,11 @@
--- 🔹 Auto Spawn + Auto Farm Script Hoàn Chỉnh (Fix: đang sống cũng farm luôn)
+-- 🔹 Auto Spawn + Auto Farm Script Hoàn Chỉnh (Fix: sau khi chết vẫn uống nước)
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local SpawnEvent = ReplicatedStorage:WaitForChild("Connections"):WaitForChild("Spawn")
-local backpack = player:WaitForChild("Backpack")
 
--- Danh sách juice để uống
+-- Danh sách juice
 local drinkList = {
     "Sour Juice",
     "Fruit Juice",
@@ -17,6 +16,11 @@ local drinkList = {
     "Coconut Milk",
 }
 
+-- lấy backpack mới nhất
+local function getBackpack()
+    return player:WaitForChild("Backpack")
+end
+
 -- 🔹 Hàm spawn
 local function spawnChar()
     print("▶ Auto Spawn...")
@@ -25,6 +29,7 @@ end
 
 -- 🔹 Hàm uống nước
 local function Uongnuoc()
+    local backpack = getBackpack()
     for _, item in ipairs(backpack:GetChildren()) do
         if table.find(drinkList, item.Name) and item:IsA("Tool") then
             item.Parent = player.Character
@@ -88,7 +93,7 @@ local teleportPoints = {
     {-1753.26, 217.22, -327.55},
 }
 
--- 🔹 Hàm farm chính
+-- 🔹 Hàm farm
 local function StartFarm()
     local char = player.Character or player.CharacterAdded:Wait()
     char:WaitForChild("HumanoidRootPart")
@@ -104,14 +109,14 @@ local function StartFarm()
     end
 end
 
--- 🔹 Khi nhân vật chết thì spawn lại
+-- 🔹 Khi chết thì spawn lại
 player.CharacterRemoving:Connect(function()
     print("⚰ Nhân vật chết, chờ spawn...")
     task.wait(3)
     spawnChar()
 end)
 
--- 🔹 Khi spawn lại thì farm
+-- 🔹 Khi spawn thì farm
 player.CharacterAdded:Connect(function(char)
     task.spawn(function()
         char:WaitForChild("HumanoidRootPart")
@@ -120,10 +125,9 @@ player.CharacterAdded:Connect(function(char)
     end)
 end)
 
--- 🔹 Spawn ngay khi script load
-spawnChar()
-
--- 🔹 Nếu nhân vật đang sống sẵn → farm luôn
+-- 🔹 Nếu đang sống thì farm luôn
 if player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
     task.spawn(StartFarm)
+else
+    spawnChar()
 end
