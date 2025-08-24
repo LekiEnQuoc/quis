@@ -8,11 +8,11 @@ local function Uongnuoc()
     local drinkList = {
         "Sour Juice",
         "Fruit Juice",
-        "Pumpkin Juice"
-        "Banana Juice"
-        "Apple Juice"
-        "Pear Juice"
-        "Coconut Milk"
+        "Pumpkin Juice",
+        "Banana Juice",
+        "Apple Juice",
+        "Pear Juice",
+        "Coconut Milk",
         
     }
 
