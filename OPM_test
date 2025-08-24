@@ -1,4 +1,4 @@
--- 🔹 Auto Spawn + Auto Farm Script Hoàn Chỉnh
+-- 🔹 Auto Spawn + Auto Farm Script Hoàn Chỉnh (Fix: đang sống cũng farm luôn)
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -29,7 +29,6 @@ local function Uongnuoc()
         if table.find(drinkList, item.Name) and item:IsA("Tool") then
             item.Parent = player.Character
             task.wait(0.2)
-
             if player.Character:FindFirstChild(item.Name) then
                 print("🥤 Uống:", item.Name)
                 item:Activate()
@@ -100,8 +99,6 @@ local function StartFarm()
             TeleportAndClick(table.unpack(point))
             task.wait(0.1)
         end
-
-        -- Sau khi đi hết điểm thì uống nước
         Uongnuoc()
         task.wait(1)
     end
@@ -114,7 +111,7 @@ player.CharacterRemoving:Connect(function()
     spawnChar()
 end)
 
--- 🔹 Khi spawn lại thì bắt đầu farm
+-- 🔹 Khi spawn lại thì farm
 player.CharacterAdded:Connect(function(char)
     task.spawn(function()
         char:WaitForChild("HumanoidRootPart")
@@ -123,5 +120,10 @@ player.CharacterAdded:Connect(function(char)
     end)
 end)
 
--- 🔹 Spawn ngay khi script chạy
+-- 🔹 Spawn ngay khi script load
 spawnChar()
+
+-- 🔹 Nếu nhân vật đang sống sẵn → farm luôn
+if player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+    task.spawn(StartFarm)
+end
