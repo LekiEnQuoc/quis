@@ -12,8 +12,7 @@ local function Uongnuoc()
         "Banana Juice",
         "Apple Juice",
         "Pear Juice",
-        "Coconut Milk"
-        
+        "Coconut Milk",
     }
 
     for _, item in ipairs(backpack:GetChildren()) do
@@ -35,14 +34,13 @@ local function TeleportAndClick(x, y, z, radius)
         if v:IsA("ClickDetector") then
             local parentPart = v.Parent
             if parentPart and parentPart:IsA("BasePart") then
-                if parentPart:IsDescendantOf(workspace.Merchants.QuestFishMerchant)
-                or parentPart:IsDescendantOf(workspace.Merchants.FishMerchant) then
-                    continue
-                end
-
-                local distance = (hrp.Position - parentPart.Position).Magnitude
-                if distance <= RADIUS then
-                    fireclickdetector(v)
+                if not (parentPart:IsDescendantOf(workspace.Merchants.QuestFishMerchant)
+                    or parentPart:IsDescendantOf(workspace.Merchants.FishMerchant)) then
+                    
+                    local distance = (hrp.Position - parentPart.Position).Magnitude
+                    if distance <= RADIUS then
+                        fireclickdetector(v)
+                    end
                 end
             end
         end
@@ -71,10 +69,6 @@ local teleportPoints = {
     {1968.65, 218.00, 576.20},
     {-1752.73, 216.00, -215.40},
     {-1753.26, 217.22, -327.55},
-    {1012.40, 217.00, 3341.04},
-    {1012.40, 217.00, 3341.04},
-    {1012.40, 217.00, 3341.04},
-    {1012.40, 217.00, 3341.04},
 }
 
 -- Vòng lặp chính
