@@ -2,50 +2,22 @@
 local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao143/Library-ui/refs/heads/main/Redzhubui"))()
 --UI Window
 local Window = redzlib:MakeWindow({
-  Title = "Quis Hub : One Piece Mythical",
-  SubTitle = "by Kin Quack",
-  SaveFolder = "Quis Hub"
+  Title = "redz Hub : Blox Fruits",
+  SubTitle = "by redz9999",
+  SaveFolder = "testando | redz lib v5.lua"
 })--UI Icon
 Window:AddMinimizeButton({
     Button = { Image = "rbxassetid://71014873973869", BackgroundTransparency = 0 },
     Corner = { CornerRadius = UDim.new(35, 1) },
 })
 --UI Tab
-local Tab1 = Window:MakeTab({"Auto Farm", "cherry"})
+local Tab1 = Window:MakeTab({"Um", "cherry"})
 --UI Section
 local Section = Tab1:AddSection({"Auto mixer"})
 --local variable
 local farmingmixer
-
-
-
-            local player = game.Players.LocalPlayer  -- phải khai báo trước
-            local function HideAllModelsAndAnchorPlayer()
-                local char = player.Character or player.CharacterAdded:Wait()
-                local hrp = char:WaitForChild("HumanoidRootPart")
-
-                -- Ẩn tất cả object trừ nhân vật
-                for _, obj in pairs(workspace:GetDescendants()) do
-                    if obj:IsA("BasePart") and not obj:IsDescendantOf(char) then
-                        obj.Transparency = 1
-                        obj.CanCollide = false
-                    end
-                end
-
-                -- Neo nhân vật (không cho rơi)
-                hrp.Anchored = true
-            end
-
-            -- Chạy khi script bắt đầu
-            --HideAllModelsAndAnchorPlayer()
-
-
-
-
-
         -- 🔹 Auto Spawn + Auto Farm Mixer Script Hoàn Chỉnh (Fix: sau khi chết vẫn uống nước)
-        local player = game.Players.LocalPlayer
-        local char = player.Character or player.CharacterAdded:Wait()
+
         local Players = game:GetService("Players")
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
         local player = Players.LocalPlayer
@@ -73,22 +45,21 @@ local farmingmixer
             SpawnEvent:FireServer(10)
         end
 
-        local function UongNuoc()
+        -- 🔹 Hàm uống nước
+        local function Uongnuoc()
             local backpack = getBackpack()
             for _, item in ipairs(backpack:GetChildren()) do
                 if table.find(drinkList, item.Name) and item:IsA("Tool") then
                     item.Parent = player.Character
-                    task.wait(0.001)
+                    task.wait(0.2)
                     if player.Character:FindFirstChild(item.Name) then
                         print("🥤 Uống:", item.Name)
                         item:Activate()
-                        task.wait(0.001)
+                        task.wait(0.5)
                     end
                 end
             end
         end
-
-
 
         -- 🔹 Hàm teleport + click
         local function TeleportAndClick(x, y, z, radius)
@@ -182,18 +153,15 @@ local farmingmixer
 
 
 
---UI sync to Scriptfunction
-    -- toggle để bật/tắt farm
-    Tab1:AddToggle({
-        Name = "Auto Farm Mixer",
-        Default = false,
-        Callback = function(v)
-            farmingmixer = v  -- cập nhật trạng thái
-            if v then
-                task.spawn(StartFarmMixer) -- bật farm (chạy ở thread riêng)
-            end
+
+-- toggle để bật/tắt farm
+Tab1:AddToggle({
+    Name = "Auto Farm Mixer",
+    Default = false,
+    Callback = function(v)
+        farmingmixer = v  -- cập nhật trạng thái
+        if v then
+            task.spawn(StartFarmMixer) -- bật farm (chạy ở thread riêng)
         end
-    })
-    Tab1:AddButton({"Reduce Lag (Warning: the map will be clear and u cant see)", function(Value)
-        HideAllModelsAndAnchorPlayer()
-    end})    
+    end
+})
