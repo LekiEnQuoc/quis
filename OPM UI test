@@ -1,0 +1,167 @@
+--UI lib
+local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao143/Library-ui/refs/heads/main/Redzhubui"))()
+--UI Window
+local Window = redzlib:MakeWindow({
+  Title = "redz Hub : Blox Fruits",
+  SubTitle = "by redz9999",
+  SaveFolder = "testando | redz lib v5.lua"
+})--UI Icon
+Window:AddMinimizeButton({
+    Button = { Image = "rbxassetid://71014873973869", BackgroundTransparency = 0 },
+    Corner = { CornerRadius = UDim.new(35, 1) },
+})
+--UI Tab
+local Tab1 = Window:MakeTab({"Um", "cherry"})
+--UI Section
+local Section = Tab1:AddSection({"Auto mixer"})
+--local variable
+local farmingmixer
+        -- 🔹 Auto Spawn + Auto Farm Mixer Script Hoàn Chỉnh (Fix: sau khi chết vẫn uống nước)
+
+        local Players = game:GetService("Players")
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local player = Players.LocalPlayer
+        local SpawnEvent = ReplicatedStorage:WaitForChild("Connections"):WaitForChild("Spawn")
+
+        -- Danh sách juice
+        local drinkList = {
+            "Sour Juice",
+            "Fruit Juice",
+            "Pumpkin Juice",
+            "Banana Juice",
+            "Apple Juice",
+            "Pear Juice",
+            "Coconut Milk",
+        }
+
+        -- lấy backpack mới nhất
+        local function getBackpack()
+            return player:WaitForChild("Backpack")
+        end
+
+        -- 🔹 Hàm spawn
+        local function spawnChar()
+            print("▶ Auto Spawn...")
+            SpawnEvent:FireServer(10)
+        end
+
+        -- 🔹 Hàm uống nước
+        local function Uongnuoc()
+            local backpack = getBackpack()
+            for _, item in ipairs(backpack:GetChildren()) do
+                if table.find(drinkList, item.Name) and item:IsA("Tool") then
+                    item.Parent = player.Character
+                    task.wait(0.2)
+                    if player.Character:FindFirstChild(item.Name) then
+                        print("🥤 Uống:", item.Name)
+                        item:Activate()
+                        task.wait(0.5)
+                    end
+                end
+            end
+        end
+
+        -- 🔹 Hàm teleport + click
+        local function TeleportAndClick(x, y, z, radius)
+            local char = player.Character or player.CharacterAdded:Wait()
+            local hrp = char:WaitForChild("HumanoidRootPart")
+
+            hrp.CFrame = CFrame.new(x, y, z)
+            task.wait(0.05)
+
+            local RADIUS = radius or 10
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("ClickDetector") then
+                    local parentPart = v.Parent
+                    if parentPart and parentPart:IsA("BasePart") then
+                        if not (parentPart:IsDescendantOf(workspace.Merchants.QuestFishMerchant)
+                            or parentPart:IsDescendantOf(workspace.Merchants.FishMerchant)) then
+
+                            local distance = (hrp.Position - parentPart.Position).Magnitude
+                            if distance <= RADIUS then
+                                fireclickdetector(v, 1)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+        -- 🔹 Danh sách điểm teleport
+        local teleportPoints = {
+            {-1492.856812, 216.999985, -304.369904, 7},
+            {-1509.853760, 216.999985, -288.241730},
+            {-1547.135376, 216.999985, -305.709229},
+            {-204.250305, 224.499985, -205.790115, 6},
+            {-10.922343, 215.999985, -355.356842, 6},
+            {-0.771519, 215.999985, -379.533539},
+            {1174.637085, 216.999985, -286.647034},
+            {1179.688110, 216.999985, -280.636566, 15},
+            {1987.863281, 217.999985, 562.384155},
+            {-1708.811890, 215.999985, -325.484009},
+            {1012.40, 217.00, 3341.04},
+            {893.09, 216.00, 3391.85, 30},
+            {1166.29, 216.00, 3224.77},
+            {-2611.89, 253.70, 1109.05, 20},
+            {986.47, 224.00, -3334.53},
+            {1979.76, 217.00, 554.20},
+            {1992.30, 234.00, 571.38},
+            {1968.65, 218.00, 576.20},
+            {-1752.73, 216.00, -215.40},
+            {-1753.26, 217.22, -327.55},
+        }
+
+        -- 🔹 Hàm farm
+        local function StartFarmMixer()
+            local char = player.Character or player.CharacterAdded:Wait()
+            char:WaitForChild("HumanoidRootPart")
+            print("✅ Bắt đầu farm...")
+
+            while farmingmixer and char.Parent and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 do
+                for _, point in ipairs(teleportPoints) do
+                    TeleportAndClick(table.unpack(point))
+                    task.wait(0.1)
+                end
+                Uongnuoc()
+                task.wait(1)
+            end
+        end
+
+        -- 🔹 Khi chết thì spawn lại
+        player.CharacterRemoving:Connect(function()
+            print("⚰ Nhân vật chết, chờ spawn...")
+            task.wait(3)
+            spawnChar()
+        end)
+
+        -- 🔹 Khi spawn thì farm
+        player.CharacterAdded:Connect(function(char)
+            task.spawn(function()
+                char:WaitForChild("HumanoidRootPart")
+                task.wait(1)
+                StartFarmMixer()
+            end)
+        end)
+
+        -- 🔹 Nếu đang sống thì farm luôn
+        if player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+            task.spawn(StartFarmMixer)
+        else
+            spawnChar()
+        end
+
+
+
+
+
+-- toggle để bật/tắt farm
+Tab1:AddToggle({
+    Name = "Auto Farm Mixer",
+    Default = false,
+    Callback = function(v)
+        farmingmixer = v  -- cập nhật trạng thái
+        if v then
+            task.spawn(StartFarmMixer) -- bật farm (chạy ở thread riêng)
+        end
+    end
+})
