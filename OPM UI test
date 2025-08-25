@@ -19,6 +19,7 @@ local farmingmixer
 
 
 
+            local player = game.Players.LocalPlayer  -- phải khai báo trước
             local function HideAllModelsAndAnchorPlayer()
                 local char = player.Character or player.CharacterAdded:Wait()
                 local hrp = char:WaitForChild("HumanoidRootPart")
@@ -31,13 +32,13 @@ local farmingmixer
                     end
                 end
 
-                -- Neo nhân vật (không cho rơi xuống void)
+                -- Neo nhân vật (không cho rơi)
                 hrp.Anchored = true
             end
 
-
             -- Chạy khi script bắt đầu
-            HideAllModelsAndAnchorPlayer()
+            --HideAllModelsAndAnchorPlayer()
+
 
 
 
