@@ -46,22 +46,20 @@ local farmingmixer
         end
 
         -- 🔹 Hàm uống nước
-        local function UongNuoc()
+        local function Uongnuoc()
             local backpack = getBackpack()
             for _, item in ipairs(backpack:GetChildren()) do
                 if table.find(drinkList, item.Name) and item:IsA("Tool") then
                     item.Parent = player.Character
-                    task.wait() -- nhỏ thôi để chuyển Tool
+                    task.wait(0.01)
                     if player.Character:FindFirstChild(item.Name) then
-                        task.spawn(function()
-                            print("🥤 Uống:", item.Name)
-                            item:Activate()
-                        end)
+                        print("🥤 Uống:", item.Name)
+                        item:Activate()
+                        task.wait(0.01)
                     end
                 end
             end
         end
-
 
         -- 🔹 Hàm teleport + click
         local function TeleportAndClick(x, y, z, radius)
