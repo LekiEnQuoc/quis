@@ -285,6 +285,7 @@ local IslandDropdown = Tab1:AddDropdown({
     Name = "Islands List",
     Description = "Select the <font color='rgb(88, 101, 242)'>Island</font>",
     Options = IslandNames,
+    Default = IslandNames[1],
     Flag = "IslandDropdown",
     Callback = function(selectedIsland)
         -- Teleport player đến tọa độ
@@ -310,6 +311,7 @@ local NPCDropdown = Tab1:AddDropdown({
     Name = "NPC List",
     Description = "Select NPC",
     Options = NPCNames,
+    Default = NPCNames[1],
     Flag = "NPCDropdown",
     Callback = function(Value)
         local player = game.Players.LocalPlayer
