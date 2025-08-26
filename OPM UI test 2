@@ -111,7 +111,34 @@ local autosam
             {-1752.73, 216.00, -215.40},
             {-1753.26, 217.22, -327.55},
         }
-
+        -- Danh sách đảo và toạ độ
+        local Islands = {
+            ["Cave Island"] = Vector3.new(-194.74, 217.00, -891.58),
+            ["Sand Island"] = Vector3.new(14.23, 225.00, 83.28),
+            ["Sam Island"] = Vector3.new(-1285.34, 217.00, -1286.62),
+            ["Bar Island"] = Vector3.new(1570.53, 254.00, 2080.40),
+            ["Purple Island"] = Vector3.new(-5232.16, 390.00, -7718.27),
+            ["Merlin Island"] = Vector3.new(-1669.60, 217.00, -327.11),
+            ["Snow Moutain Island"] = Vector3.new(6251.43, 486.00, -1612.56),
+            ["Gunslingers Island"] = Vector3.new(-1185.21, 218.00, 1433.38),
+            ["Snow Island"] = Vector3.new(-1863.05, 222.00, 3229.98),
+            ["Orange House Island"] = Vector3.new(731.68, 241.00, 1219.04),
+            ["Rocky Island"] = Vector3.new(2042.45, 488.00, -720.06),
+            ["Desert Casstle Island"] = Vector3.new(980.31, 224.00, -3249.99),
+            ["Marine Island"] = Vector3.new(-3133.86, 275.80, -3653.82),
+            ["Spiral Island"] = Vector3.new(-5890.76, 216.00, -8.01),
+            ["Stone Island"] = Vector3.new(-2645.55, 252.56, 1018.72),
+            ["Pyramid Island"] = Vector3.new(284.55, 216.00, 4954.38),
+            ["Red House Island"] = Vector3.new(1053.05, 217.00, 3313.73),
+            ["3 Big House Island"] = Vector3.new(1747.62, 218.00, 835.58),
+            ["Moon Shaped Island"] = Vector3.new(3159.76, 217.00, 1556.41),
+            ["Pursuer Island"] = Vector3.new(4848.78, 570.00, -7135.17),
+            ["Vokun Island"] = Vector3.new(4671.28, 217.00, 4893.32),
+            ["Small Rocky Island"] = Vector3.new(-35.31, 229.00, 2147.98),
+            ["Heart Island"] = Vector3.new(2211.56, 217.00, -1960.47),
+            ["Small Sand Island"] = Vector3.new(-1204.12, 224.00, 651.87),
+            ["Small Palm Tree Island"] = Vector3.new(755.41, 216.00, -1370.97),
+        }        
         -- 🔹 Hàm farm
         local function StartFarmMixer()
             local char = player.Character or player.CharacterAdded:Wait()
@@ -187,6 +214,36 @@ Tab1:AddToggle({
         autosam = v  -- cập nhật trạng thái
         if v then
             task.spawn(Autosam) -- bật farm (chạy ở thread riêng)
+        end
+    end
+})
+
+
+
+
+
+-- Lấy list tên đảo để add vào dropdown
+local IslandNames = {}
+for name, _ in pairs(Islands) do
+    table.insert(IslandNames, name)
+end
+
+-- Tạo dropdown
+local Dropdown = Tab1:AddDropdown({
+    Name = "Islands List",
+    Description = "Select the <font color='rgb(88, 101, 242)'>Island</font>",
+    Options = IslandNames,
+    Default = IslandNames[1],
+    Flag = "IslandDropdown",
+    Callback = function(Value)
+        -- Teleport player đến tọa độ
+        local player = game.Players.LocalPlayer
+        local char = player.Character or player.CharacterAdded:Wait()
+        local hrp = char:WaitForChild("HumanoidRootPart")
+
+        local pos = Islands[Value]
+        if pos then
+            hrp.CFrame = CFrame.new(pos)
         end
     end
 })
