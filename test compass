@@ -1,69 +1,150 @@
+--// === CONFIG ===
+local TREES_FOLDER = workspace:WaitForChild("Trees")
+local ARROW = workspace.senaahe585.Compasss:WaitForChild("CompassArrow")
+local MAX_RANGE = 10000           -- tầm dò tối đa
+local MERGE_EPS = 5               -- ngưỡng "trùng" (studs) để gom các cây gần như cùng khoảng cách
+local LIFT_Y = 3                  -- nhấc người chơi lên chút để không kẹt
+local STEP_OUT = 3                -- đẩy ra ngoài góc 1 chút cho chắc
+
+--// === LẤY NHÂN VẬT ===
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
 
--- Kim của la bàn
-local arrow = workspace.senaahe585.Compasss:WaitForChild("CompassArrow")
+--// === HỖ TRỢ TOÁN HỌC ===
+local function sign(x) return (x >= 0) and 1 or -1 end
 
--- Lấy hướng kim (chỉ theo mặt đất)
-local origin = arrow.Position
-local dir = arrow.CFrame.LookVector
-local flatDir = Vector3.new(dir.X, 0, dir.Z).Unit
+-- Ray–OBB 2D (mặt phẳng XZ) bằng "slab method"
+-- origin (world), dirUnitXZ (world, đã Unit & Y=0), bbCF (CFrame), bbSize (Vector3)
+-- Trả về: tHit (khoảng cách dọc theo tia), hoặc nil nếu không giao.
+local function rayOBB2D(origin, dirUnitXZ, bbCF, bbSize)
+    -- Đưa origin & dir về local của OBB
+    local oL = bbCF:PointToObjectSpace(origin)
+    local dL = bbCF:VectorToObjectSpace(dirUnitXZ)
 
--- Hàm lấy 4 góc của model (theo Pivot + ExtentsSize)
-local function getCorners(model)
-    local pivot = model:GetPivot()
-    local size = model:GetExtentsSize()
-    local half = size / 2
+    local hx, hz = bbSize.X * 0.5, bbSize.Z * 0.5
+    local ox, oz = oL.X, oL.Z
+    local dx, dz = dL.X, dL.Z
 
-    local corners = {
-        pivot.Position + pivot.RightVector * half.X + pivot.LookVector * half.Z,
-        pivot.Position - pivot.RightVector * half.X + pivot.LookVector * half.Z,
-        pivot.Position + pivot.RightVector * half.X - pivot.LookVector * half.Z,
-        pivot.Position - pivot.RightVector * half.X - pivot.LookVector * half.Z,
-    }
-    return corners
+    local tMin, tMax = 0, 1e9
+
+    local function slab(p, d, minb, maxb)
+        if math.abs(d) < 1e-8 then
+            if p < minb or p > maxb then
+                return nil, nil -- song song & ngoài biên => không giao
+            else
+                return -1e9, 1e9 -- song song & nằm trong dải => không giới hạn theo trục này
+            end
+        end
+        local t1 = (minb - p) / d
+        local t2 = (maxb - p) / d
+        if t1 > t2 then t1, t2 = t2, t1 end
+        return t1, t2
+    end
+
+    local ax1, ax2 = slab(ox, dx, -hx,  hx); if not ax1 then return nil end
+    local az1, az2 = slab(oz, dz, -hz,  hz); if not az1 then return nil end
+
+    tMin = math.max(tMin, ax1, az1)
+    tMax = math.min(tMax, ax2, az2)
+
+    if tMax < tMin then return nil end
+    if tMax < 0 then return nil end
+
+    -- Nếu bắt đầu trong OBB, tMin < 0: lấy t thoát (tMax). Ngược lại lấy tMin (t vào).
+    local tHit = (tMin >= 0) and tMin or tMax
+    if tHit > MAX_RANGE then return nil end
+    return tHit
 end
 
--- Tìm tất cả cây theo hướng kim
-local matchingTrees = {}
-for _, tree in ipairs(workspace.Trees:GetChildren()) do
-    local treePos
-    pcall(function() treePos = tree:GetPivot().Position end)
-    if treePos then
-        local vecToTree = Vector3.new(treePos.X - origin.X, 0, treePos.Z - origin.Z)
-        local dist = vecToTree.Magnitude
-        if dist > 0 then
-            local dot = flatDir:Dot(vecToTree.Unit)
-            if dot > 0.98 then -- chỉ lấy cây phía trước, gần thẳng hướng
-                table.insert(matchingTrees, tree)
+-- Lấy 4 góc (trên XZ) của OBB theo bbCF & bbSize (world)
+local function getOBBCorners(bbCF, bbSize)
+    local half = bbSize * 0.5
+    local right, look = bbCF.RightVector, bbCF.LookVector
+    local center = bbCF.Position
+
+    return {
+        center + right*half.X + look*half.Z,
+        center - right*half.X + look*half.Z,
+        center + right*half.X - look*half.Z,
+        center - right*half.X - look*half.Z,
+    }, center
+end
+
+-- Chọn "góc hướng về phía tia" (dựa trên dir trong local của OBB)
+local function pickForwardCorner(bbCF, bbSize, dirUnitXZ)
+    local dL = bbCF:VectorToObjectSpace(dirUnitXZ)
+    local sx, sz = sign(dL.X), sign(dL.Z)
+    local half = bbSize * 0.5
+    local localCorner = Vector3.new(sx*half.X, 0, sz*half.Z)
+    return bbCF:PointToWorldSpace(localCorner)
+end
+
+--// === LOGIC CHÍNH ===
+local origin = ARROW.Position
+local look = ARROW.CFrame.LookVector
+local flatDir = Vector3.new(look.X, 0, look.Z)
+if flatDir.Magnitude < 1e-6 then
+    warn("CompassArrow hướng thẳng đứng, không thể xác định hướng ngang.")
+    return
+end
+flatDir = flatDir.Unit
+
+-- Duyệt toàn bộ cây, tính giao tuyến tia–OBB 2D
+local hits = {}
+for _, tree in ipairs(TREES_FOLDER:GetChildren()) do
+    -- Bỏ qua cái không phải Model (hoặc Model rỗng)
+    if tree:IsA("Model") then
+        local ok, bbCF, bbSize = pcall(tree.GetBoundingBox, tree)
+        if ok and bbCF and bbSize then
+            local t = rayOBB2D(origin, flatDir, bbCF, bbSize)
+            if t then
+                table.insert(hits, {tree = tree, t = t, bbCF = bbCF, bbSize = bbSize})
             end
         end
     end
 end
 
--- Xuất kết quả
-if #matchingTrees > 0 then
-    print("Các cây trong hướng kim:")
-    for i, tree in ipairs(matchingTrees) do
-        print("Cây:", tree.Name, "tọa độ gốc:", tree:GetPivot().Position)
-        local corners = getCorners(tree)
-        for j, corner in ipairs(corners) do
-            print("  Góc " .. j .. ":", corner)
-        end
-    end
-
-    -- Hàm teleport tới góc bất kỳ
-    local function teleportToTreeCorner(tree, cornerIndex)
-        local corners = getCorners(tree)
-        local targetCorner = corners[cornerIndex] + Vector3.new(0, 5, 0) -- nhích cao để không kẹt
-        hrp.CFrame = CFrame.new(targetCorner, tree:GetPivot().Position)
-    end
-
-    -- Ví dụ: teleport tới góc 1 của cây đầu tiên
-    teleportToTreeCorner(matchingTrees[1], 1)
-
-else
-    print("Không có cây nào theo hướng kim")
+if #hits == 0 then
+    print("Không tìm thấy cây nào trên hướng kim.")
+    return
 end
+
+-- Sắp xếp theo khoảng cách tăng dần
+table.sort(hits, function(a,b) return a.t < b.t end)
+
+-- Gom các cây "trùng" (khoảng cách xấp xỉ nhau trong ngưỡng MERGE_EPS)
+local nearestT = hits[1].t
+local sameLine = {}
+for _, h in ipairs(hits) do
+    if math.abs(h.t - nearestT) <= MERGE_EPS then
+        table.insert(sameLine, h)
+    else
+        break
+    end
+end
+
+-- In ra tất cả cây trùng + 4 góc mỗi cây
+print(("Tìm thấy %d cây trên cùng hướng (±%d studs):"):format(#sameLine, MERGE_EPS))
+for i, h in ipairs(sameLine) do
+    local corners, center = getOBBCorners(h.bbCF, h.bbSize)
+    print(("[%d] %s  | center: %s  | t≈%.2f"):format(i, h.tree.Name, tostring(center), h.t))
+    for j, c in ipairs(corners) do
+        print(("   Góc %d: %s"):format(j, tostring(c)))
+    end
+end
+
+--=== TELEPORT: tới ĐÚNG GÓC, quay mặt vào GÓC đó ===--
+-- Chọn cây gần nhất (phần còn lại bạn có thể cho người chơi chọn theo chỉ số)
+local chosen = sameLine[1]
+local corner = pickForwardCorner(chosen.bbCF, chosen.bbSize, flatDir)
+
+-- Đẩy người chơi ra ngoài góc một chút theo hướng từ tâm -> góc (trên XZ)
+local _, center = getOBBCorners(chosen.bbCF, chosen.bbSize)
+local outward = Vector3.new(corner.X - center.X, 0, corner.Z - center.Z)
+local outwardUnit = outward.Magnitude > 0 and outward.Unit or flatDir
+local targetPos = corner + outwardUnit * STEP_OUT + Vector3.new(0, LIFT_Y, 0)
+
+-- Quay mặt nhìn chính cái góc đó
+hrp.CFrame = CFrame.new(targetPos, Vector3.new(corner.X, targetPos.Y, corner.Z))
