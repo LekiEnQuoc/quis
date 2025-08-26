@@ -1,44 +1,42 @@
--- LocalScript, chạy ở client
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-
--- đường dẫn đến kim la bàn
-local compassArrow = workspace:WaitForChild("arpishanettan31")
-	:WaitForChild("Compass")
-	:WaitForChild("CompassArrow")
-
--- cây trong workspace
 local treesFolder = workspace:WaitForChild("Trees")
 
--- tạo RaycastParams để chỉ raycast trúng cây
+-- hàm lấy CompassArrow
+local function getCompassArrow()
+	local tool = player.Backpack:FindFirstChild("Compass") or (player.Character and player.Character:FindFirstChild("Compass"))
+	if tool then
+		return tool:FindFirstChild("CompassArrow")
+	end
+end
+
+-- setup raycast chỉ chạm cây
 local raycastParams = RaycastParams.new()
 raycastParams.FilterType = Enum.RaycastFilterType.Whitelist
 raycastParams.FilterDescendantsInstances = {treesFolder}
 
--- hàm tìm cây mà kim đang chỉ tới
+-- hàm tìm cây mà kim chỉ
 local function getTreePointed()
-	-- lấy vị trí và hướng
-	local origin = compassArrow.Position
-	local direction = compassArrow.CFrame.LookVector * 1000 -- tia dài 1000 stud
-	
+	local arrow = getCompassArrow()
+	if not arrow then return end
+
+	local origin = arrow.Position
+	local direction = arrow.CFrame.LookVector * 1000 -- tia dài 1000 stud
+
 	local result = workspace:Raycast(origin, direction, raycastParams)
 	if result and result.Instance then
-		local hitPart = result.Instance
-		
-		-- kiểm tra có phải cây không
-		local tree = hitPart:FindFirstAncestorWhichIsA("Model")
+		local tree = result.Instance:FindFirstAncestorWhichIsA("Model")
 		if tree and tree.Parent == treesFolder then
 			return tree, result.Position
 		end
 	end
-	return nil, nil
 end
 
--- ví dụ: in ra cây đang được kim chỉ
+-- loop kiểm tra
 while task.wait(1) do
-	local tree, hitPos = getTreePointed()
+	local tree, pos = getTreePointed()
 	if tree then
-		print("Kim đang chỉ tới cây:", tree.Name, "tọa độ:", hitPos)
+		print("Kim đang chỉ tới cây:", tree.Name, "tọa độ:", pos)
 	else
 		print("Không thấy cây nào theo hướng kim.")
 	end
