@@ -215,45 +215,27 @@ local autosam
         --Other Function
             -- Clear Lag Function
                 local function ClearTexture()
-                    local Optimizer = {Enabled = false}
-
-                    local function ToggleOptimizer()
-                        Optimizer.Enabled = not Optimizer.Enabled
-                        local lighting = game:GetService("Lighting")
-
-                        -- Xử lý hiệu ứng
-                        for _, v in ipairs(game:GetDescendants()) do
-                            if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles")
-                            or v:IsA("PostEffect") or v:IsA("BloomEffect") or v:IsA("BlurEffect") or v:IsA("SunRaysEffect") then
-                                v.Enabled = not Optimizer.Enabled
-                            elseif v:IsA("BasePart") then
-                                v.CastShadow = not Optimizer.Enabled
-                                if Optimizer.Enabled then
-                                    v.Material, v.Reflectance = Enum.Material.SmoothPlastic, 0
-                                end
-                            elseif v:IsA("Decal") or v:IsA("Texture") then
-                                v.Transparency = Optimizer.Enabled and 1 or 0
-                            elseif v:IsA("MeshPart") then
-                                v.RenderFidelity = Optimizer.Enabled and Enum.RenderFidelity.Performance or Enum.RenderFidelity.Precise
-                            end
+                    for _, v in ipairs(game:GetDescendants()) do
+                        if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles")
+                        or v:IsA("PostEffect") or v:IsA("BloomEffect") or v:IsA("BlurEffect") or v:IsA("SunRaysEffect") then
+                            v.Enabled = false
+                        elseif v:IsA("BasePart") then
+                            v.CastShadow = false
+                            v.Material, v.Reflectance = Enum.Material.SmoothPlastic, 0
+                        elseif v:IsA("Decal") or v:IsA("Texture") then
+                            v.Transparency = 1
+                        elseif v:IsA("MeshPart") then
+                            v.RenderFidelity = Enum.RenderFidelity.Performance
                         end
-
-                        -- Lighting + Settings cơ bản
-                        lighting.GlobalShadows = not Optimizer.Enabled
-                        lighting.Brightness = Optimizer.Enabled and 2 or 3
-                        lighting.FogEnd = Optimizer.Enabled and 9e9 or 100000
-                        settings().Rendering.QualityLevel = Optimizer.Enabled and 1 or 7
-
-                        print("Optimizer: " .. (Optimizer.Enabled and "ON" or "OFF"))
                     end
 
-                    -- Bấm RightControl để bật/tắt
-                    game:GetService("UserInputService").InputBegan:Connect(function(input)
-                        if input.KeyCode == Enum.KeyCode.RightControl then
-                            ToggleOptimizer()
-                        end
-                    end)
-                    
+                    local lighting = game:GetService("Lighting")
+                    lighting.GlobalShadows = false
+                    lighting.Brightness = 2
+                    lighting.FogEnd = 9e9
+                    settings().Rendering.QualityLevel = 1
+
+                    print("✅ FPS Optimizer đã chạy")
                 end        
 
 
@@ -342,3 +324,7 @@ local NPCDropdown = Tab1:AddDropdown({
         end
     end
 })
+
+Tab1:AddButton({"FPS Boost", function(Value)
+    ClearTexture()
+end})
