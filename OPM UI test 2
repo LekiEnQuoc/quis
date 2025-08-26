@@ -247,19 +247,19 @@ for name, _ in pairs(Islands) do
 end
 
 -- Tạo dropdown
-local Dropdown = Tab1:AddDropdown({
+local IslandDropdown = Tab1:AddDropdown({
     Name = "Islands List",
     Description = "Select the <font color='rgb(88, 101, 242)'>Island</font>",
     Options = IslandNames,
     Default = IslandNames[1],
     Flag = "IslandDropdown",
-    Callback = function(Value)
+    Callback = function(selectedIsland)
         -- Teleport player đến tọa độ
         local player = game.Players.LocalPlayer
         local char = player.Character or player.CharacterAdded:Wait()
         local hrp = char:WaitForChild("HumanoidRootPart")
 
-        local pos = Islands[Value]
+        local pos = Islands[selectedIsland]
         if pos then
             hrp.CFrame = CFrame.new(pos)
         end
@@ -279,7 +279,7 @@ local DropdownNPC = Tab1:AddDropdown({
     Options = NPCNames,
     Default = NPCNames[1],
     Flag = "NPCDropdown",
-    Callback = function(Value)
+    Callback = function(selectedNPC)
         local player = game.Players.LocalPlayer
         local char = player.Character or player.CharacterAdded:Wait()
         local hrp = char:WaitForChild("HumanoidRootPart")
