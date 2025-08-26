@@ -1,43 +1,15 @@
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local treesFolder = workspace:WaitForChild("Trees")
-
--- hàm lấy CompassArrow
-local function getCompassArrow()
-	local tool = player.Backpack:FindFirstChild("Compass") or (player.Character and player.Character:FindFirstChild("Compass"))
-	if tool then
-		return tool:FindFirstChild("CompassArrow")
-	end
-end
-
--- setup raycast chỉ chạm cây
-local raycastParams = RaycastParams.new()
-raycastParams.FilterType = Enum.RaycastFilterType.Whitelist
-raycastParams.FilterDescendantsInstances = {treesFolder}
-
--- hàm tìm cây mà kim chỉ
-local function getTreePointed()
-	local arrow = getCompassArrow()
-	if not arrow then return end
-
-	local origin = arrow.Position
-	local direction = arrow.CFrame.LookVector * 1000 -- tia dài 1000 stud
-
-	local result = workspace:Raycast(origin, direction, raycastParams)
-	if result and result.Instance then
-		local tree = result.Instance:FindFirstAncestorWhichIsA("Model")
-		if tree and tree.Parent == treesFolder then
-			return tree, result.Position
-		end
-	end
-end
-
--- loop kiểm tra
-while task.wait(1) do
-	local tree, pos = getTreePointed()
-	if tree then
-		print("Kim đang chỉ tới cây:", tree.Name, "tọa độ:", pos)
-	else
-		print("Không thấy cây nào theo hướng kim.")
-	end
+local arrow = getCompassArrow()
+if arrow then
+    local origin = arrow.Position
+    local dir = arrow.CFrame.LookVector * 1000
+    print("Origin:", origin, "Direction:", dir)
+    
+    -- tạo part hiển thị tia
+    local part = Instance.new("Part")
+    part.Anchored = true
+    part.CanCollide = false
+    part.Size = Vector3.new(0.2, 0.2, (dir.Magnitude))
+    part.CFrame = CFrame.new(origin + dir/2, origin + dir)
+    part.Color = Color3.new(1,0,0)
+    part.Parent = workspace
 end
