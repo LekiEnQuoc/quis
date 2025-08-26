@@ -1,0 +1,69 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+-- Kim của la bàn
+local arrow = workspace.senaahe585.Compasss:WaitForChild("CompassArrow")
+
+-- Lấy hướng kim (chỉ theo mặt đất)
+local origin = arrow.Position
+local dir = arrow.CFrame.LookVector
+local flatDir = Vector3.new(dir.X, 0, dir.Z).Unit
+
+-- Hàm lấy 4 góc của model (theo Pivot + ExtentsSize)
+local function getCorners(model)
+    local pivot = model:GetPivot()
+    local size = model:GetExtentsSize()
+    local half = size / 2
+
+    local corners = {
+        pivot.Position + pivot.RightVector * half.X + pivot.LookVector * half.Z,
+        pivot.Position - pivot.RightVector * half.X + pivot.LookVector * half.Z,
+        pivot.Position + pivot.RightVector * half.X - pivot.LookVector * half.Z,
+        pivot.Position - pivot.RightVector * half.X - pivot.LookVector * half.Z,
+    }
+    return corners
+end
+
+-- Tìm tất cả cây theo hướng kim
+local matchingTrees = {}
+for _, tree in ipairs(workspace.Trees:GetChildren()) do
+    local treePos
+    pcall(function() treePos = tree:GetPivot().Position end)
+    if treePos then
+        local vecToTree = Vector3.new(treePos.X - origin.X, 0, treePos.Z - origin.Z)
+        local dist = vecToTree.Magnitude
+        if dist > 0 then
+            local dot = flatDir:Dot(vecToTree.Unit)
+            if dot > 0.98 then -- chỉ lấy cây phía trước, gần thẳng hướng
+                table.insert(matchingTrees, tree)
+            end
+        end
+    end
+end
+
+-- Xuất kết quả
+if #matchingTrees > 0 then
+    print("Các cây trong hướng kim:")
+    for i, tree in ipairs(matchingTrees) do
+        print("Cây:", tree.Name, "tọa độ gốc:", tree:GetPivot().Position)
+        local corners = getCorners(tree)
+        for j, corner in ipairs(corners) do
+            print("  Góc " .. j .. ":", corner)
+        end
+    end
+
+    -- Hàm teleport tới góc bất kỳ
+    local function teleportToTreeCorner(tree, cornerIndex)
+        local corners = getCorners(tree)
+        local targetCorner = corners[cornerIndex] + Vector3.new(0, 5, 0) -- nhích cao để không kẹt
+        hrp.CFrame = CFrame.new(targetCorner, tree:GetPivot().Position)
+    end
+
+    -- Ví dụ: teleport tới góc 1 của cây đầu tiên
+    teleportToTreeCorner(matchingTrees[1], 1)
+
+else
+    print("Không có cây nào theo hướng kim")
+end
