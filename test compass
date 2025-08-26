@@ -3,61 +3,62 @@ local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
 
-local ARROW = workspace.senaahe585.Compasss.CompassArrow
+local arrow = workspace.senaahe585.Compasss:WaitForChild("CompassArrow")
 
--- tạo RaycastParams chỉ cho cây
-local params = RaycastParams.new()
-params.FilterType = Enum.RaycastFilterType.Whitelist
-params.FilterDescendantsInstances = {workspace.Trees}
+-- Gốc và hướng kim
+local origin = arrow.Position
+local dir = arrow.CFrame.LookVector
+local flatDir = Vector3.new(dir.X, 0, dir.Z).Unit
 
--- hướng tia (bỏ Y để chắc chắn la bàn không chỉ lên trời)
-local dir = ARROW.CFrame.LookVector
-dir = Vector3.new(dir.X, 0, dir.Z).Unit
+-- Hàm lấy 4 góc của một cây (dựa trên pivot + size)
+local function getCorners(model)
+    local pivot = model:GetPivot()
+    local size = model:GetExtentsSize()
+    local half = size / 2
 
-local origin = ARROW.Position
-local result = workspace:Raycast(origin, dir * 1000, params)
-
-if not result then
-	warn("Không có cây nào trúng tia")
-	return
+    local corners = {
+        pivot.Position + pivot.RightVector * half.X + pivot.LookVector * half.Z,
+        pivot.Position - pivot.RightVector * half.X + pivot.LookVector * half.Z,
+        pivot.Position + pivot.RightVector * half.X - pivot.LookVector * half.Z,
+        pivot.Position - pivot.RightVector * half.X - pivot.LookVector * half.Z,
+    }
+    return corners
 end
 
-local hitPart = result.Instance
-local tree = hitPart:FindFirstAncestorOfClass("Model")
-if not tree then
-	warn("Tia trúng nhưng không phải cây")
-	return
+-- Tìm tất cả cây trùng hướng kim
+local matchingTrees = {}
+for _, tree in ipairs(workspace.Trees:GetChildren()) do
+    local treePos
+    pcall(function() treePos = tree:GetPivot().Position end)
+    if treePos then
+        local vecToTree = Vector3.new(treePos.X - origin.X, 0, treePos.Z - origin.Z)
+        local dist = vecToTree.Magnitude
+        if dist > 0 then
+            local dot = flatDir:Dot(vecToTree.Unit)
+            if dot > 0.98 then -- cho phép lệch nhẹ
+                table.insert(matchingTrees, tree)
+            end
+        end
+    end
 end
 
--- lấy bounding box của cây
-local cf, size = tree:GetBoundingBox()
-local half = size * 0.5
-local right, look = cf.RightVector, cf.LookVector
-local center = cf.Position
+-- Xuất kết quả
+if #matchingTrees > 0 then
+    print("Các cây trong hướng kim:")
+    for i, tree in ipairs(matchingTrees) do
+        print("Cây:", tree.Name, "tọa độ gốc:", tree:GetPivot().Position)
+        local corners = getCorners(tree)
+        for j, corner in ipairs(corners) do
+            print("  Góc " .. j .. ":", corner)
+        end
+    end
 
--- 4 góc trên mặt đất
-local corners = {
-	center + right*half.X + look*half.Z,
-	center - right*half.X + look*half.Z,
-	center + right*half.X - look*half.Z,
-	center - right*half.X - look*half.Z,
-}
+    -- Teleport đến góc 1 của cây đầu tiên
+    local firstTree = matchingTrees[1]
+    local corners = getCorners(firstTree)
+    local targetCorner = corners[1] + Vector3.new(0, 5, 0) -- nhích cao 5 để không kẹt
+    hrp.CFrame = CFrame.new(targetCorner, firstTree:GetPivot().Position)
 
--- chọn góc gần hướng kim nhất
-local bestCorner, bestDot = nil, -1
-for _,corner in ipairs(corners) do
-	local v = Vector3.new(corner.X-origin.X,0,corner.Z-origin.Z).Unit
-	local d = v:Dot(dir)
-	if d > bestDot then
-		bestDot = d
-		bestCorner = corner
-	end
-end
-
--- teleport nhân vật tới góc
-if bestCorner then
-	local offset = (bestCorner - center).Unit * 3
-	local target = bestCorner + Vector3.new(0,3,0) + offset
-	hrp.CFrame = CFrame.new(target, Vector3.new(bestCorner.X, target.Y, bestCorner.Z))
-	print("Teleported to tree:", tree.Name, "corner:", bestCorner)
+else
+    print("Không có cây nào theo hướng kim")
 end
