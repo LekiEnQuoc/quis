@@ -156,7 +156,8 @@ local autosam
             ["Affinity Merchant"] = Vector3.new(115.33, 278.00, 4949.87),
             ["CHEF Merchant"] = Vector3.new(1982.38, 218.48, 562.96),
             ["Expertise Merchant"] = Vector3.new(903.41, 270.00, 1219.53),
-        }        
+        }    
+    -- Farm Function 
         -- 🔹 Hàm farm
         local function StartFarmMixer()
             local char = player.Character or player.CharacterAdded:Wait()
@@ -211,6 +212,56 @@ local autosam
                 wait(1)
             end
         end
+        --Other Function
+            -- Clear Lag Function
+                local function ClearTexture()
+                    local Optimizer = {Enabled = false}
+
+                    local function ToggleOptimizer()
+                        Optimizer.Enabled = not Optimizer.Enabled
+                        local lighting = game:GetService("Lighting")
+
+                        -- Xử lý hiệu ứng
+                        for _, v in ipairs(game:GetDescendants()) do
+                            if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles")
+                            or v:IsA("PostEffect") or v:IsA("BloomEffect") or v:IsA("BlurEffect") or v:IsA("SunRaysEffect") then
+                                v.Enabled = not Optimizer.Enabled
+                            elseif v:IsA("BasePart") then
+                                v.CastShadow = not Optimizer.Enabled
+                                if Optimizer.Enabled then
+                                    v.Material, v.Reflectance = Enum.Material.SmoothPlastic, 0
+                                end
+                            elseif v:IsA("Decal") or v:IsA("Texture") then
+                                v.Transparency = Optimizer.Enabled and 1 or 0
+                            elseif v:IsA("MeshPart") then
+                                v.RenderFidelity = Optimizer.Enabled and Enum.RenderFidelity.Performance or Enum.RenderFidelity.Precise
+                            end
+                        end
+
+                        -- Lighting + Settings cơ bản
+                        lighting.GlobalShadows = not Optimizer.Enabled
+                        lighting.Brightness = Optimizer.Enabled and 2 or 3
+                        lighting.FogEnd = Optimizer.Enabled and 9e9 or 100000
+                        settings().Rendering.QualityLevel = Optimizer.Enabled and 1 or 7
+
+                        print("Optimizer: " .. (Optimizer.Enabled and "ON" or "OFF"))
+                    end
+
+                    -- Bấm RightControl để bật/tắt
+                    game:GetService("UserInputService").InputBegan:Connect(function(input)
+                        if input.KeyCode == Enum.KeyCode.RightControl then
+                            ToggleOptimizer()
+                        end
+                    end)
+                    
+                end        
+
+
+
+
+
+
+
 
 
 
