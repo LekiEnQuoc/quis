@@ -207,7 +207,8 @@ local autosam
                 local args = {
                     "Claim1"
                 }
-                game:GetService("ReplicatedStorage"):WaitForChild("Connections"):WaitForChild("Claim_Sam"):FireServer(unpack(args))        
+                game:GetService("ReplicatedStorage"):WaitForChild("Connections"):WaitForChild("Claim_Sam"):FireServer(unpack(args))
+                wait(1)
             end
         end
 
@@ -273,15 +274,20 @@ for name, _ in pairs(NPCs) do
 end
 
 -- Dropdown NPC
-local DropdownNPC = Tab1:AddDropdown({
-    Name = "TP to NPCs",
-    Description = "Select the <font color='rgb(88, 101, 242)'>NPC</font>",
+local NPCDropdown = Tab1:AddDropdown({
+    Name = "NPC List",
+    Description = "Select NPC",
     Options = NPCNames,
     Default = NPCNames[1],
     Flag = "NPCDropdown",
-    Callback = function(selectedNPC)
+    Callback = function(Value)
         local player = game.Players.LocalPlayer
         local char = player.Character or player.CharacterAdded:Wait()
         local hrp = char:WaitForChild("HumanoidRootPart")
+
+        local pos = NPCs[Value]
+        if pos then
+            hrp.CFrame = CFrame.new(pos)
+        end
     end
 })
