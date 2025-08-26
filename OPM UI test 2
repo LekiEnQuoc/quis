@@ -16,6 +16,7 @@ local Tab1 = Window:MakeTab({"Um", "cherry"})
 local Section = Tab1:AddSection({"Auto mixer"})
 --local variable
 local farmingmixer
+local autosam
         -- 🔹 Auto Spawn + Auto Farm Mixer Script Hoàn Chỉnh (Fix: sau khi chết vẫn uống nước)
 
         local Players = game:GetService("Players")
@@ -120,7 +121,7 @@ local farmingmixer
             while farmingmixer and char.Parent and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 do
                 for _, point in ipairs(teleportPoints) do
                     TeleportAndClick(table.unpack(point))
-                    task.wait(1)
+                    task.wait(0.1)
                 end
                 Uongnuoc()
                 task.wait(0.3)--speed, warning: could be banned
@@ -149,8 +150,21 @@ local farmingmixer
         else
             spawnChar()
         end
-
-
+        -- Clear texture
+        -- LocalScript đặt trong StarterPlayerScripts
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Texture") or obj:IsA("Decal") then
+               obj:Destroy()
+            end
+        end
+        local function Autosam()
+            while autosam do
+                local args = {
+                    "Claim1"
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("Connections"):WaitForChild("Claim_Sam"):FireServer(unpack(args))        
+            end
+        end
 
 
 
@@ -162,6 +176,17 @@ Tab1:AddToggle({
         farmingmixer = v  -- cập nhật trạng thái
         if v then
             task.spawn(StartFarmMixer) -- bật farm (chạy ở thread riêng)
+        end
+    end
+})
+
+Tab1:AddToggle({
+    Name = "Auto Sam",
+    Default = false,
+    Callback = function(v)
+        autosam = v  -- cập nhật trạng thái
+        if v then
+            task.spawn(Autosam) -- bật farm (chạy ở thread riêng)
         end
     end
 })
