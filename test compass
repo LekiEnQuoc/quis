@@ -1,15 +1,29 @@
-local arrow = getCompassArrow()
-if arrow then
-    local origin = arrow.Position
-    local dir = arrow.CFrame.LookVector * 1000
-    print("Origin:", origin, "Direction:", dir)
-    
-    -- tạo part hiển thị tia
-    local part = Instance.new("Part")
-    part.Anchored = true
-    part.CanCollide = false
-    part.Size = Vector3.new(0.2, 0.2, (dir.Magnitude))
-    part.CFrame = CFrame.new(origin + dir/2, origin + dir)
-    part.Color = Color3.new(1,0,0)
-    part.Parent = workspace
+local function getTreeByDirection()
+	local arrow = getCompassArrow()
+	if not arrow then return end
+
+	local origin = arrow.Position
+	local look = arrow.CFrame.LookVector
+
+	local bestTree, bestDot, bestPos = nil, -1, nil
+	for _, tree in ipairs(treesFolder:GetChildren()) do
+		if tree:IsA("Model") then
+			local pos = getModelCenter(tree)
+			if pos then
+				local dir = (pos - origin).Unit
+				local dot = look:Dot(dir)
+				if dot > bestDot then
+					bestTree, bestDot, bestPos = tree, dot, pos
+				end
+			end
+		end
+	end
+	return bestTree, bestPos
+end
+
+while task.wait(1) do
+	local tree, pos = getTreeByDirection()
+	if tree then
+		print("Kim hướng tới cây gần nhất:", tree.Name, "tọa độ:", pos)
+	end
 end
