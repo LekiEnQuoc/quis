@@ -1,14 +1,25 @@
+-- LocalScript, chạy client side (StarterPlayerScripts hoặc executor)
+
 local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
--- Đợi nhân vật load
-player.CharacterAdded:Wait()
-local char = player.Character or player.CharacterAdded:Wait()
+-- Đợi nhân vật load xong
+local function getCharacter()
+    local char = player.Character
+    if not char or not char.Parent then
+        char = player.CharacterAdded:Wait()
+    end
+    return char
+end
+
+local char = getCharacter()
 local hrp = char:WaitForChild("HumanoidRootPart")
 
 -- Kim la bàn
 local arrow = workspace.arpishanettan31.Compass.CompassArrow
 
+-- Lấy 4 góc từ 1 Model cây
 local function getCorners(model)
     local pivot = model:GetPivot()
     local size = model:GetExtentsSize()
@@ -21,6 +32,7 @@ local function getCorners(model)
     }
 end
 
+-- Tìm tất cả cây theo hướng kim
 local function findTrees()
     local origin = arrow.Position
     local dir = arrow.CFrame.LookVector
@@ -35,6 +47,7 @@ local function findTrees()
             local dist = vecToTree.Magnitude
             if dist > 0 then
                 local dot = flatDir:Dot(vecToTree.Unit)
+                -- dot ~1 nghĩa là gần như thẳng hàng với kim
                 if dot > 0.95 then
                     table.insert(found, tree)
                 end
@@ -44,9 +57,7 @@ local function findTrees()
     return found
 end
 
--- Gõ phím T để teleport tới góc 1 của tất cả cây theo hướng
-local UIS = game:GetService("UserInputService")
-
+-- Nhấn T để teleport
 UIS.InputBegan:Connect(function(input, gp)
     if gp then return end
     if input.KeyCode == Enum.KeyCode.T then
@@ -59,9 +70,10 @@ UIS.InputBegan:Connect(function(input, gp)
         for _, tree in ipairs(trees) do
             local corners = getCorners(tree)
             if corners[1] then
+                -- Teleport lên góc 1 của cây, +5 để không kẹt
                 hrp.CFrame = CFrame.new(corners[1] + Vector3.new(0,5,0), tree:GetPivot().Position)
-                print("Teleported tới:", tree.Name, "at góc:", corners[1])
-                task.wait(1) -- dừng 1s rồi sang cây tiếp theo
+                print("Teleported tới:", tree.Name, "tọa độ góc:", corners[1])
+                task.wait(1) -- nghỉ 1s rồi sang cây tiếp theo
             end
         end
     end
