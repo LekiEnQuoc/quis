@@ -139,6 +139,24 @@ local autosam
             ["Small Sand Island"] = Vector3.new(-1204.12, 224.00, 651.87),
             ["Small Palm Tree Island"] = Vector3.new(755.41, 216.00, -1370.97),
         }        
+
+        -- Danh sách NPC và tọa độ
+        local NPCs = {
+            ["Better Drink Merchant"] = Vector3.new(1492.52, 260.77, 2170.93),
+            ["Drink Merchant"] = Vector3.new(-1281.60, 218.20, -1367.70),
+            ["Sam Merchant"] = Vector3.new(1550.16, 264.28, 2132.36),
+            ["Friend Merchant"] = Vector3.new(1246.19, 224.30, -3239.48),
+            ["Heavy Weapons Merchant"] = nil, -- chưa có tọa độ
+            ["Krizma Seller Merchant"] = Vector3.new(-1067.90, 361.21, 1665.14),
+            ["Flair Merchant"] = Vector3.new(1110.36, 217.40, 3369.08),
+            ["Sword Seller Merchant"] = Vector3.new(1001.96, 225.07, -3338.09),
+            ["Gun Seller Merchant"] = Vector3.new(-1843.40, 222.00, 3415.47),
+            ["Merlin Merchant"] = Vector3.new(-1698.76, 216.00, -326.07),
+            ["Emotes Teacher Merchant"] = Vector3.new(1520.47, 260.79, 2166.26),
+            ["Affinity Merchant"] = Vector3.new(115.33, 278.00, 4949.87),
+            ["CHEF Merchant"] = Vector3.new(1982.38, 218.48, 562.96),
+            ["Expertise Merchant"] = Vector3.new(903.41, 270.00, 1219.53),
+        }        
         -- 🔹 Hàm farm
         local function StartFarmMixer()
             local char = player.Character or player.CharacterAdded:Wait()
@@ -245,5 +263,25 @@ local Dropdown = Tab1:AddDropdown({
         if pos then
             hrp.CFrame = CFrame.new(pos)
         end
+    end
+})
+
+-- Lấy list tên NPC để đưa vào dropdown
+local NPCNames = {}
+for name, _ in pairs(NPCs) do
+    table.insert(NPCNames, name)
+end
+
+-- Dropdown NPC
+local DropdownNPC = Tab1:AddDropdown({
+    Name = "TP to NPCs",
+    Description = "Select the <font color='rgb(88, 101, 242)'>NPC</font>",
+    Options = NPCNames,
+    Default = NPCNames[1],
+    Flag = "NPCDropdown",
+    Callback = function(Value)
+        local player = game.Players.LocalPlayer
+        local char = player.Character or player.CharacterAdded:Wait()
+        local hrp = char:WaitForChild("HumanoidRootPart")
     end
 })
