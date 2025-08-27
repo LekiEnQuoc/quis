@@ -79,7 +79,7 @@ local autosam
             local hrp = char:WaitForChild("HumanoidRootPart")
 
             hrp.CFrame = CFrame.new(x, y, z)
-            task.wait(0.05)
+            task.wait(3)
 
             local RADIUS = radius or 10
             for _, v in pairs(workspace:GetDescendants()) do
@@ -178,7 +178,7 @@ local autosam
             while farmingmixer and char.Parent and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 do
                 for _, point in ipairs(teleportPoints) do
                     TeleportAndClick(table.unpack(point))
-                    task.wait(2.9)
+                    task.wait(0.1)
                 end
                 Uongnuoc()
                 task.wait(0.1)--speed, warning: could be banned
