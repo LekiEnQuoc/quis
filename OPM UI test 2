@@ -181,7 +181,7 @@ local autosam
                     task.wait(0.3)
                 end
                 Uongnuoc()
-                task.wait(0.2)--speed, warning: could be banned
+                task.wait(0.7)--speed, warning: could be banned
             end
         end
 
