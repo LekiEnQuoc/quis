@@ -178,10 +178,10 @@ local autosam
             while farmingmixer and char.Parent and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 do
                 for _, point in ipairs(teleportPoints) do
                     TeleportAndClick(table.unpack(point))
-                    task.wait(0.3)
+                    task.wait(2.9)
                 end
                 Uongnuoc()
-                task.wait(2.7)--speed, warning: could be banned
+                task.wait(0.1)--speed, warning: could be banned
             end
         end
 
