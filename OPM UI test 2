@@ -72,7 +72,7 @@ local autosam
             end
         end
 
-        -- 🔹 Hàm teleport + click liên tục
+        -- 🔹 Hàm teleport + click
         local function TeleportAndClick(x, y, z, radius)
             local char = player.Character or player.CharacterAdded:Wait()
             local hrp = char:WaitForChild("HumanoidRootPart")
@@ -90,20 +90,14 @@ local autosam
 
                             local distance = (hrp.Position - parentPart.Position).Magnitude
                             if distance <= RADIUS then
-                                -- 🔹 Click liên tục
-                                task.spawn(function()
-                                    while true do
-                                        fireclickdetector(v, 1)
-                                        task.wait(0.2) -- tốc độ spam
-                                    end
-                                end)
+                                fireclickdetector(v, 1)
                             end
                         end
                     end
                 end
             end
+            wait(0.1)
         end
-
 
         -- 🔹 Danh sách điểm teleport
         local teleportPoints = {
