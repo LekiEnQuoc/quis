@@ -65,7 +65,6 @@ local autosam
                     item.Parent = player.Character
                     task.wait(0.01)
                     if player.Character:FindFirstChild(item.Name) then
-                        print("🥤 Uống:", item.Name)
                         item:Activate()
                         task.wait(0.01)
                     end
@@ -73,7 +72,7 @@ local autosam
             end
         end
 
-        -- 🔹 Hàm teleport + click
+        -- 🔹 Hàm teleport + click liên tục
         local function TeleportAndClick(x, y, z, radius)
             local char = player.Character or player.CharacterAdded:Wait()
             local hrp = char:WaitForChild("HumanoidRootPart")
@@ -91,13 +90,20 @@ local autosam
 
                             local distance = (hrp.Position - parentPart.Position).Magnitude
                             if distance <= RADIUS then
-                                fireclickdetector(v, 1)
+                                -- 🔹 Click liên tục
+                                task.spawn(function()
+                                    while true do
+                                        fireclickdetector(v, 1)
+                                        task.wait(0.2) -- tốc độ spam
+                                    end
+                                end)
                             end
                         end
                     end
                 end
             end
         end
+
 
         -- 🔹 Danh sách điểm teleport
         local teleportPoints = {
@@ -315,7 +321,7 @@ local IslandDropdown = Tab1:AddDropdown({
     Name = "Islands List",
     Description = "Select the <font color='rgb(88, 101, 242)'>Island</font>",
     Options = IslandNames,
-    Default = IslandNames[1],
+    Default = nil,
     Flag = "IslandDropdown",
     Callback = function(selectedIsland)
         -- Teleport player đến tọa độ
@@ -341,7 +347,7 @@ local NPCDropdown = Tab1:AddDropdown({
     Name = "NPC List",
     Description = "Select NPC",
     Options = NPCNames,
-    Default = NPCNames[1],
+    Default = nil,
     Flag = "NPCDropdown",
     Callback = function(Value)
         local player = game.Players.LocalPlayer
